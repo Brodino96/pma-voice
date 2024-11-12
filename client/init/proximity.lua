@@ -5,6 +5,8 @@ local plyCoords = GetEntityCoords(PlayerPedId())
 proximity = MumbleGetTalkerProximity()
 currentTargets = {}
 
+local broadcasters = {}
+
 function orig_addProximityCheck(ply)
 	local tgtPed = GetPlayerPed(ply)
 	local voiceRange = GetConvar('voice_useNativeAudio', 'false') == 'true' and proximity * 3 or proximity
@@ -56,7 +58,25 @@ function addNearbyPlayers()
 			MumbleAddVoiceTargetChannel(voiceTarget, MumbleGetVoiceChannelFromServerId(serverId))
 		end
 	end
+
+	for i = 1, #broadcasters do
+		if broadcasters[i] ~= nil then
+			MumbleAddVoiceTargetChannel(voiceTarget, MumbleGetVoiceChannelFromServerId(broadcasters[i]))
+		end
+	end
 end
+
+exports("addBroadcaster", function (serverId)
+	table.insert(broadcasters, serverId)
+end)
+
+exports("removeBroadcaster", function (serverId)
+	for i = 1, #broadcasters do
+		if broadcasters[i] == serverId then
+			broadcasters[i] = nil
+		end
+	end
+end)
 
 function setSpectatorMode(enabled)
 	logger.info('Setting spectate mode to %s', enabled)
